@@ -16,8 +16,18 @@ main::before{content:"";position:absolute;inset:-30px;background:center/cover ur
 .test{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;background:#091236dc;border:1px solid #ffffff55;border-radius:100px;padding:8px 12px;font-size:.83rem}
 dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;background:linear-gradient(155deg,#282055,#10183d);border:1px solid #ac8fcc;border-radius:22px;padding:24px;box-shadow:0 16px 70px #040617}dialog::backdrop{background:#0a0b2bcc}h1{font:700 2rem Georgia;margin:.5em 0}p{line-height:1.55}button{font:inherit}dialog button{color:inherit;background:#46346d;border:1px solid #b8a4d480;border-radius:12px;padding:10px 14px;cursor:pointer}#choices{display:flex;flex-wrap:wrap;gap:8px}#feedback{min-height:1.5em;color:#ffe0a3}
 @media(prefers-reduced-motion:reduce){*,*::after{animation-duration:0s!important;transition-duration:0s!important}}
+
+.weather{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.aurora{position:absolute;inset:-8% -18% 56%;background:radial-gradient(ellipse 26% 13% at 30% 59%,#48ffd5a0,transparent 85%),radial-gradient(ellipse 31% 12% at 60% 45%,#c24cff9c,transparent 85%),radial-gradient(ellipse 24% 11% at 81% 59%,#27ffe77e,transparent 85%);mix-blend-mode:screen;filter:blur(12px);transform:rotate(-28deg);animation:aurora-drift 13s ease-in-out infinite alternate}
+@keyframes aurora-drift{from{opacity:.25;transform:translate(-5%,2%) rotate(-31deg)}to{opacity:.75;transform:translate(6%,-5%) rotate(-24deg)}}
+.flake{position:absolute;top:-8px;width:var(--diameter);height:var(--diameter);border-radius:50%;background:#edf8ff;opacity:var(--alpha);animation:snowfall var(--duration) var(--delay) linear infinite}
+@keyframes snowfall{to{transform:translate(var(--drift),calc(100dvh + 16px))}}
+.meteor{position:absolute;top:5%;left:83%;width:clamp(36px,12%,90px);height:2px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 21s linear infinite}
+@keyframes shoot{0%,30%{opacity:0;transform:translate(0,0) rotate(-26deg)}31%{opacity:.95}36%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
+#scene:has(.opening) .weather{visibility:hidden}
+@media(prefers-reduced-motion:reduce){.weather{display:none}}
 </style>
-<main aria-label="Emilias Adventskalender"><div id="scene"></div></main>
+<main aria-label="Emilias Adventskalender"><div id="scene"><div class="weather" aria-hidden="true"><div class="aurora"></div><div class="meteor"></div></div></div></main>
 <label class="test"><input type="checkbox" id="test"> Testmodus</label>
 <dialog id="chapter" aria-labelledby="heading">
 <small id="day"></small><h1 id="heading"></h1><p id="story"></p><p id="riddle"></p>
@@ -118,5 +128,15 @@ chapter.addEventListener('close', () => {
   activeDoor = null;
   test.disabled = false;
 });
+
+const weather = document.querySelector('.weather');
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  for (let i = 0; i < 28; i++) {
+    const flake = document.createElement('span');
+    flake.className = 'flake';
+    flake.style.cssText = `left:${Math.random()*100}%;--diameter:${1+Math.random()*2.7}px;--alpha:${.2+Math.random()*.45};--duration:${11+Math.random()*13}s;--delay:${-Math.random()*24}s;--drift:${(Math.random()-.5)*85}px`;
+    weather.append(flake);
+  }
+}
 </script>
 </html>
