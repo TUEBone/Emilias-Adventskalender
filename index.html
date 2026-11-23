@@ -1,5 +1,122 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Emilias Adventskalender</title><style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;color:white;min-height:100vh;text-align:center;background:linear-gradient(#102b54,#345a89 65%,#d8ecff);transition:background 1s}body.w2{background:linear-gradient(#362451,#815e9b 65%,#f3d9ef)}body.w3{background:linear-gradient(#073d3e,#247d72 65%,#d7f5df)}body.w4{background:linear-gradient(#3d1730,#a34758 65%,#ffe0d0)}header{padding:30px 15px 12px}h1{font-size:clamp(28px,7vw,52px);margin:0;text-shadow:0 3px 12px #123}p{margin:10px auto;max-width:550px}.toolbar{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:16px}button{font:inherit;cursor:pointer}select,.toggle{background:#fff;color:#25314b;border:0;border-radius:20px;padding:10px 16px}.grid{max-width:820px;margin:22px auto 50px;padding:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.door{position:relative;min-height:100px;border:2px solid #ffffffb0;border-radius:16px;color:white;font-size:clamp(24px,5vw,42px);font-weight:800;text-shadow:0 2px 5px #345;background:linear-gradient(140deg,#db3b59,#8d1d44);box-shadow:0 7px 0 #ffffff40,0 12px 18px #1228;transition:transform .2s}.door:nth-child(3n){background:linear-gradient(140deg,#138d8c,#145267)}.door:nth-child(4n){background:linear-gradient(140deg,#e8a640,#af5c27)}.door:hover{transform:translateY(-4px) rotate(-1deg)}.door.opened{outline:3px solid #ffdd7b}.snow{font-size:32px;letter-spacing:22px;opacity:.8}.overlay{position:fixed;inset:0;background:#081529c9;display:none;align-items:center;justify-content:center;padding:20px;z-index:5}.overlay.show{display:flex}.modal{width:min(95vw,460px);background:linear-gradient(150deg,#fff9ed,#e9f6ff);color:#23304d;border-radius:24px;padding:28px;box-shadow:0 20px 60px #0008}.modal h2{font-size:30px}.close{border:0;border-radius:20px;padding:12px 26px;background:#a82d57;color:white}.emoji{font-size:70px}footer{padding:20px;color:#203e61;font-size:13px}@media(max-width:430px){.grid{gap:8px}.door{min-height:75px;border-radius:12px}}</style></head><body><header><div class="snow">❄ ✦ ❄</div><h1>✨ Emilias Adventskalender ✨</h1><p>24 kleine Weihnachtsüberraschungen – nur für dich!</p></header><div class="toolbar"><label class="toggle">Winterwelt <select id="world"><option value="auto">Automatisch</option><option value="1">Schneewald</option><option value="2">Zauberhimmel</option><option value="3">Nordlicht</option><option value="4">Weihnachtsabend</option></select></label><label class="toggle"><input id="test" type="checkbox"> Testmodus</label></div><p id="hint">Im Dezember öffnet sich jeden Tag ein neues Türchen.</p><main class="grid" id="grid"></main><div class="overlay" id="overlay" role="dialog" aria-modal="true"><div class="modal"><div class="emoji" id="emoji"></div><h2 id="heading"></h2><p id="message"></p><button class="close" id="close">Schließen ✨</button></div></div><footer>Mit Liebe für Emilia ❤️</footer><script>
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Emilias Adventskalender</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080f33;color:#fff9e9;font:1rem system-ui}
+main{position:fixed;inset:0;overflow:hidden;display:grid;place-items:center}
+main::before{content:"";position:absolute;inset:-30px;background:center/cover url(calendar.svg);filter:blur(24px) brightness(.45)}
+#scene{position:relative;width:min(100vw,46.15dvh);aspect-ratio:852/1846;background:center/100% 100% url(calendar.svg);transition:transform .75s cubic-bezier(.6,0,.28,1)}
+.door{position:absolute;transform:translate(-50%,-50%);border:0;border-radius:50%;background:none;padding:0;cursor:pointer;perspective:150px}
+.door:focus-visible,.door[data-opened]{outline:2px solid #ffe0a3;outline-offset:2px}
+.door.opening{background:radial-gradient(circle,#fffbe0 5%,#ffca61 34%,#a143c5 65%,#120b40 90%);box-shadow:0 0 20px #ffe482;z-index:1}
+.door.opening::after{content:"";position:absolute;inset:0;border-radius:50%;background-image:url(calendar.svg);background-size:var(--size);background-position:var(--position);transform-origin:left center;animation:open .48s ease-in forwards}
+@keyframes open{to{transform:rotateY(-110deg);opacity:.55}}
+.test{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;background:#091236dc;border:1px solid #ffffff55;border-radius:100px;padding:8px 12px;font-size:.83rem}
+dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;background:linear-gradient(155deg,#282055,#10183d);border:1px solid #ac8fcc;border-radius:22px;padding:24px;box-shadow:0 16px 70px #040617}dialog::backdrop{background:#0a0b2bcc}h1{font:700 2rem Georgia;margin:.5em 0}p{line-height:1.55}button{font:inherit}dialog button{color:inherit;background:#46346d;border:1px solid #b8a4d480;border-radius:12px;padding:10px 14px;cursor:pointer}#choices{display:flex;flex-wrap:wrap;gap:8px}#feedback{min-height:1.5em;color:#ffe0a3}
+@media(prefers-reduced-motion:reduce){*,*::after{animation-duration:0s!important;transition-duration:0s!important}}
+</style>
+<main aria-label="Emilias Adventskalender"><div id="scene"></div></main>
+<label class="test"><input type="checkbox" id="test"> Testmodus</label>
+<dialog id="chapter" aria-labelledby="heading">
+<small id="day"></small><h1 id="heading"></h1><p id="story"></p><p id="riddle"></p>
+<div id="choices"></div><p id="feedback" role="status"></p>
+<form method="dialog"><button>Zurück zum Baum</button></form>
+</dialog>
+<script>
 const gifts=[["🎄","Dein Weihnachtsabenteuer beginnt! Heute gehört dir ein extra großes Lächeln."],["⭐","Wunschstern: Denk dir einen geheimen Wunsch aus."],["☕","Zeit für eine gemütliche Tasse Kakao."],["🎶","Heute ist dein Tag für ein Lieblingslied und eine kleine Tanzparty."],["🦌","Ein Rentier hat eine Nachricht: Du bist wunderbar!"],["🎅","Nikolauszauber! Halte heute nach einer kleinen Überraschung Ausschau."],["🍪","Backidee: Verziere einen Keks so verrückt wie möglich."],["❄️","Mini-Mission: Entdecke draußen drei schöne Winterdinge."],["💌","Schreibe jemandem eine liebe Nachricht."],["🎬","Heute wäre ein perfekter Abend für einen Weihnachtsfilm."],["🌟","Deine Superkraft heute: Bring jemanden zum Lachen."],["🧣","Mach es dir richtig gemütlich – mit Decke und Lieblingsmusik."],["🎨","Male einen Weihnachtsbaum, den es noch nie gab."],["🧩","Rätsel: Was fällt im Winter, tut aber nicht weh? Schnee!"],["💃","Eine Minute verrückt tanzen – Herausforderung angenommen?"],["🕯️","Wünsch dir einen besonders schönen Moment für diese Woche."],["🎁","Überraschungsmission: Mach jemandem ein kleines Kompliment."],["⛄","Erfinde einen lustigen Namen für einen Schneemann."],["🦄","Stell dir vor, ein magisches Einhorn bringt dich zum Nordpol!"],["⚽","Weihnachts-Challenge: Erfinde einen neuen Fußball-Jubel."],["🍫","Heute darfst du dir eine kleine süße Pause gönnen."],["🎵","Sing den Refrain deines Lieblingssongs."],["💖","Denk an drei Dinge, auf die du dich freust."],["🎉","Frohe Weihnachten, Emilia! Du bist das größte Geschenk. ❤️"]];
-const grid=document.getElementById('grid'),test=document.getElementById('test'),world=document.getElementById('world'),hint=document.getElementById('hint'),overlay=document.getElementById('overlay');const now=new Date();let opened={};try{opened=JSON.parse(localStorage.getItem('emilia-opened')||'{}')}catch(e){}function available(n){return test.checked||(now.getMonth()===11&&now.getDate()>=n)}function theme(){let w=world.value==='auto'?(now.getMonth()===11?Math.min(4,Math.floor((now.getDate()-1)/7)+1):1):+world.value;document.body.className='w'+w}function render(){theme();hint.textContent=test.checked?'Testmodus: Alle 24 Türchen sind zum Ausprobieren geöffnet.':'Im Dezember öffnet sich jeden Tag ein neues Türchen.';grid.innerHTML='';for(let i=1;i<=24;i++){let b=document.createElement('button');b.className='door'+(opened[i]?' opened':'');b.textContent=i;b.setAttribute('aria-label','Türchen '+i);b.onclick=()=>{if(!available(i)){show('🔒','Noch ein bisschen Geduld!','Türchen '+i+' öffnet sich am '+i+'. Dezember.');return}opened[i]=true;try{localStorage.setItem('emilia-opened',JSON.stringify(opened))}catch(e){}show(gifts[i-1][0],'Türchen '+i,gifts[i-1][1]);render()};grid.appendChild(b)}}function show(e,h,m){document.getElementById('emoji').textContent=e;document.getElementById('heading').textContent=h;document.getElementById('message').textContent=m;overlay.classList.add('show')}document.getElementById('close').onclick=()=>overlay.classList.remove('show');overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove('show')};test.onchange=render;world.onchange=theme;render();
-</script></body></html>
+const positions = [[644,373,52],[536,488,58],[702,478,52],[634,530,40],[453,573,49],[576,612,52],[751,585,64],[419,685,49],[537,673,37],[690,685,58],[803,719,43],[452,765,70],[582,739,54],[652,775,35],[373,847,50],[545,842,52],[729,831,80],[825,853,45],[420,923,51],[608,914,36],[344,984,50],[504,982,59],[693,963,67],[433,1056,61]];
+const scene = document.querySelector('#scene');
+const test = document.querySelector('#test');
+const chapter = document.querySelector('#chapter');
+const choices = document.querySelector('#choices');
+let opened = {};
+let activeDoor;
+let solved = false;
+try {
+  opened = JSON.parse(localStorage.getItem('emilia-opened')) || {};
+  solved = localStorage.getItem('emilia-riddle-1') === 'true';
+} catch {}
+function write(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+function show(number, unlocked) {
+  document.querySelector('#day').textContent = number + '. Dezember';
+  document.querySelector('#heading').textContent = !unlocked ? 'Die Kugel schläft noch' : number === 1 ? 'Der Ball im Nordlicht' : 'Türchen ' + number;
+  document.querySelector('#story').textContent = !unlocked
+    ? 'Diese Kugel öffnet sich am ' + number + '. Dezember 2026.'
+    : number === 1
+      ? 'Emilia hört einen dumpfen Schuss. Zwischen den verschneiten Tannen rollt ein goldener Ball vor ihre Füße. „Gut abgefangen“, sagt Ronaldo und stapft hinterher. Im Schnee leuchten drei Zahlen auf. „Eine davon öffnet das Tor zum Winterstadion. Probierst du es?“'
+      : gifts[number - 1][1];
+  document.querySelector('#riddle').textContent = unlocked && number === 1
+    ? 'Auf dem ersten Trikot steht 7, auf dem zweiten 10. Welche Zahl trägt das dritte Trikot, wenn die Zahlen immer um gleich viel steigen?'
+    : '';
+  choices.replaceChildren();
+  const feedback = document.querySelector('#feedback');
+  const success = 'Richtig! Das Tor öffnet sich. Ronaldo legt dir den goldenen Ball vor die Füße. „Der erste Pass gehört dir.“';
+  feedback.textContent = '';
+  if (unlocked && number === 1) {
+    feedback.textContent = solved ? success : '';
+    for (const answer of [11, 13, 17]) {
+      const button = document.createElement('button');
+      button.textContent = answer;
+      button.type = 'button';
+      button.onclick = () => {
+        if (answer !== 13) {
+          feedback.textContent = 'Schau, um wie viel die Zahl von 7 auf 10 steigt.';
+          return;
+        }
+        feedback.textContent = success;
+        if (!test.checked) {
+          solved = true;
+          write('emilia-riddle-1', true);
+        }
+      };
+      choices.append(button);
+    }
+  }
+  chapter.showModal();
+}
+const pause = ms => new Promise(resolve => setTimeout(resolve, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms));
+positions.forEach(([x,y,size], index) => {
+  const number = index + 1;
+  const button = document.createElement('button');
+  button.className = 'door';
+  button.setAttribute('aria-label', 'Türchen ' + number);
+  button.style.cssText = `left:${x/852*100}%;top:${y/1846*100}%;width:${size/852*100}%;height:${size/1846*100}%;--size:${852/size*100}% ${1846/size*100}%;--position:${(x-size/2)/(852-size)*100}% ${(y-size/2)/(1846-size)*100}%`;
+  if (opened[number]) button.dataset.opened = '';
+  button.onclick = async () => {
+    if (activeDoor || chapter.open) return;
+    const today = new Date();
+    const testing = test.checked;
+    if (!testing && today < new Date(2026,11,number)) {
+      show(number, false);
+      return;
+    }
+    activeDoor = button;
+    test.disabled = true;
+    button.classList.add('opening');
+    await pause(475);
+    scene.style.transformOrigin = `${x/852*100}% ${y/1846*100}%`;
+    const scale = 22;
+    scene.style.transform = `translate(${(0.5-x/852)*scene.clientWidth}px,${(0.5-y/1846)*scene.clientHeight}px) scale(${scale})`;
+    await pause(760);
+    if (!testing) {
+      opened[number] = true;
+      button.dataset.opened = '';
+      write('emilia-opened', opened);
+    }
+    show(number, true);
+  };
+  scene.append(button);
+});
+chapter.addEventListener('close', () => {
+  scene.style.transform = '';
+  activeDoor?.classList.remove('opening');
+  activeDoor?.focus({preventScroll:true});
+  activeDoor = null;
+  test.disabled = false;
+});
+</script>
+</html>
