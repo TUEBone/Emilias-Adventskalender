@@ -28,7 +28,7 @@ dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;backgr
 @keyframes shoot{0%,10%{opacity:0;transform:translate(0,0) rotate(-26deg)}13%{opacity:.95}28%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
 #scene:has(.opening) .weather{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.weather{display:none}}
-</style>
+@media(orientation:portrait) and (max-width:600px){#scene{width:100vw;height:max(216.67vw,100dvh);flex:none}main{grid-template:100% / 100%;align-items:center}}</style>
 <main aria-label="Emilias Adventskalender"><div id="scene"><div class="weather" aria-hidden="true"><div class="aurora"></div><div class="meteor"></div></div></div></main>
 <label class="test"><input type="checkbox" id="test"> Testmodus</label>
 <dialog id="chapter" aria-labelledby="heading">
