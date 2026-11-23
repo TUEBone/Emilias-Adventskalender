@@ -7,7 +7,7 @@
 *{box-sizing:border-box}body{margin:0;background:#080f33;color:#fff9e9;font:1rem system-ui}
 main{position:fixed;inset:0;overflow:hidden;display:grid;place-items:center}
 main::before{content:"";position:absolute;inset:-30px;background:center/cover url(calendar.svg);filter:blur(24px) brightness(.45)}
-#scene{position:relative;width:min(100vw,46.15dvh);aspect-ratio:852/1846;background:center/100% 100% url(calendar.svg);transition:transform 1.7s cubic-bezier(.6,0,.28,1)}
+#scene{position:relative;width:min(100vw,46.15dvh);aspect-ratio:852/1846;background:center/100% 100% url(calendar.svg);transition:transform 2s cubic-bezier(.6,0,.28,1)}
 .door{position:absolute;transform:translate(-50%,-50%);border:0;border-radius:50%;background:none;padding:0;cursor:pointer;perspective:150px}
 .door:focus-visible,.door[data-opened]{outline:2px solid #ffe0a3;outline-offset:2px}
 .door.opening{background:radial-gradient(circle,#fffbe0 5%,#ffca61 34%,#a143c5 65%,#120b40 90%);box-shadow:0 0 20px #ffe482;z-index:1}
@@ -20,9 +20,11 @@ dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;backgr
 .weather{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .aurora{position:absolute;inset:-8% -18% 56%;background:radial-gradient(ellipse 26% 13% at 30% 59%,#48ffd5a0,transparent 85%),radial-gradient(ellipse 31% 12% at 60% 45%,#c24cff9c,transparent 85%),radial-gradient(ellipse 24% 11% at 81% 59%,#27ffe77e,transparent 85%);mix-blend-mode:screen;filter:blur(12px);transform:rotate(-28deg);animation:aurora-drift 13s ease-in-out infinite alternate}
 @keyframes aurora-drift{from{opacity:.25;transform:translate(-5%,2%) rotate(-31deg)}to{opacity:.75;transform:translate(6%,-5%) rotate(-24deg)}}
-.flake{position:absolute;top:-8px;width:var(--diameter);height:var(--diameter);border-radius:50%;background:#edf8ff;opacity:var(--alpha);animation:snowfall var(--duration) var(--delay) linear infinite}
+.flake::before{content:"";position:absolute;inset:0;background:#eefbff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:crystal-twinkle var(--sparkle) ease-in-out infinite alternate}
+@keyframes crystal-twinkle{from{opacity:.32;transform:scale(.68) rotate(0deg)}to{opacity:1;transform:scale(1.45) rotate(40deg)}}
+.flake{position:absolute;top:-8px;width:var(--diameter);height:var(--diameter);filter:drop-shadow(0 0 2px #b9ecff);opacity:var(--alpha);animation:snowfall var(--duration) var(--delay) linear infinite}
 @keyframes snowfall{to{transform:translate(var(--drift),calc(100dvh + 16px))}}
-.meteor{position:absolute;top:5%;left:83%;width:clamp(36px,12%,90px);height:2px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 7s linear infinite}
+.meteor{position:absolute;top:5%;left:83%;width:clamp(72px,24%,180px);height:4px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 7s linear infinite}
 @keyframes shoot{0%,10%{opacity:0;transform:translate(0,0) rotate(-26deg)}13%{opacity:.95}28%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
 #scene:has(.opening) .weather{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.weather{display:none}}
@@ -111,7 +113,7 @@ positions.forEach(([x,y,size], index) => {
     scene.style.transformOrigin = `${x/852*100}% ${y/1846*100}%`;
     const scale = 22;
     scene.style.transform = `translate(${(0.5-x/852)*scene.clientWidth}px,${(0.5-y/1846)*scene.clientHeight}px) scale(${scale})`;
-    await pause(1710);
+    await pause(2010);
     if (!testing) {
       opened[number] = true;
       button.dataset.opened = '';
@@ -131,10 +133,11 @@ chapter.addEventListener('close', () => {
 
 const weather = document.querySelector('.weather');
 if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  for (let i = 0; i < 28; i++) {
+  for (let i = 0; i < 88; i++) {
     const flake = document.createElement('span');
     flake.className = 'flake';
-    flake.style.cssText = `left:${Math.random()*100}%;--diameter:${1+Math.random()*2.7}px;--alpha:${.2+Math.random()*.45};--duration:${11+Math.random()*13}s;--delay:${-Math.random()*24}s;--drift:${(Math.random()-.5)*85}px`;
+    flake.style.cssText = `left:${Math.random()*100}%;--diameter:${2+Math.random()*4.5}px;--alpha:${.35+Math.random()*.6};--duration:${11+Math.random()*13}s;--delay:${-Math.random()*24}s;--drift:${(Math.random()-.5)*85}px`;
+    flake.style.setProperty('--sparkle', (1.4 + Math.random() * 2.6) + 's');
     weather.append(flake);
   }
 }
