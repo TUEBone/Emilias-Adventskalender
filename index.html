@@ -24,7 +24,7 @@ dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;backgr
 @keyframes crystal-twinkle{from{opacity:.32;transform:scale(.68) rotate(0deg)}to{opacity:1;transform:scale(1.45) rotate(40deg)}}
 .flake{position:absolute;top:-8px;width:var(--diameter);height:var(--diameter);filter:drop-shadow(0 0 2px #b9ecff);opacity:var(--alpha);animation:snowfall var(--duration) var(--delay) linear infinite}
 @keyframes snowfall{to{transform:translate(var(--drift),calc(100dvh + 16px))}}
-.meteor{position:absolute;top:5%;left:83%;width:clamp(72px,24%,180px);height:4px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 5s linear infinite}
+.meteor{position:absolute;top:5%;left:83%;width:clamp(72px,24%,180px);height:4px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 7s linear infinite}
 @keyframes shoot{0%,10%{opacity:0;transform:translate(0,0) rotate(-26deg)}13%{opacity:.95}28%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
 #scene:has(.opening) .weather{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.weather{display:none}}
