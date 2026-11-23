@@ -11,7 +11,7 @@ main::before{content:"";position:absolute;inset:-30px;background:center/cover ur
 .door{position:absolute;transform:translate(-50%,-50%);border:0;border-radius:50%;background:none;padding:0;cursor:pointer;perspective:150px}
 .door:focus-visible,.door[data-opened]{outline:2px solid #ffe0a3;outline-offset:2px}
 .door.opening{background:radial-gradient(circle,#fffbe0 5%,#ffca61 34%,#a143c5 65%,#120b40 90%);box-shadow:0 0 20px #ffe482;z-index:1}
-.door.opening::after{content:"";position:absolute;inset:0;border-radius:50%;background-image:url(calendar.svg);background-size:var(--size);background-position:var(--position);transform-origin:left center;animation:open .48s ease-in forwards}
+.door.opening::after{content:"";position:absolute;inset:0;border-radius:50%;background-image:url(calendar.svg);background-size:var(--size);background-position:var(--position);transform-origin:left center;animation:open 1s ease-in-out forwards}
 @keyframes open{to{transform:rotateY(-110deg);opacity:.55}}
 .test{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;background:#091236dc;border:1px solid #ffffff55;border-radius:100px;padding:8px 12px;font-size:.83rem}
 dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;background:linear-gradient(155deg,#282055,#10183d);border:1px solid #ac8fcc;border-radius:22px;padding:24px;box-shadow:0 16px 70px #040617}dialog::backdrop{background:#0a0b2bcc}h1{font:700 2rem Georgia;margin:.5em 0}p{line-height:1.55}button{font:inherit}dialog button{color:inherit;background:#46346d;border:1px solid #b8a4d480;border-radius:12px;padding:10px 14px;cursor:pointer}#choices{display:flex;flex-wrap:wrap;gap:8px}#feedback{min-height:1.5em;color:#ffe0a3}
@@ -24,7 +24,7 @@ dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;backgr
 @keyframes crystal-twinkle{from{opacity:.32;transform:scale(.68) rotate(0deg)}to{opacity:1;transform:scale(1.45) rotate(40deg)}}
 .flake{position:absolute;top:-8px;width:var(--diameter);height:var(--diameter);filter:drop-shadow(0 0 2px #b9ecff);opacity:var(--alpha);animation:snowfall var(--duration) var(--delay) linear infinite}
 @keyframes snowfall{to{transform:translate(var(--drift),calc(100dvh + 16px))}}
-.meteor{position:absolute;top:5%;left:83%;width:clamp(72px,24%,180px);height:4px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 7s linear infinite}
+.meteor{position:absolute;top:5%;left:83%;width:clamp(72px,24%,180px);height:4px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 5s linear infinite}
 @keyframes shoot{0%,10%{opacity:0;transform:translate(0,0) rotate(-26deg)}13%{opacity:.95}28%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
 #scene:has(.opening) .weather{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.weather{display:none}}
@@ -109,7 +109,7 @@ positions.forEach(([x,y,size], index) => {
     activeDoor = button;
     test.disabled = true;
     button.classList.add('opening');
-    await pause(475);
+    await pause(1000);
     scene.style.transformOrigin = `${x/852*100}% ${y/1846*100}%`;
     const scale = 22;
     scene.style.transform = `translate(${(0.5-x/852)*scene.clientWidth}px,${(0.5-y/1846)*scene.clientHeight}px) scale(${scale})`;
