@@ -7,7 +7,7 @@
 *{box-sizing:border-box}body{margin:0;background:#080f33;color:#fff9e9;font:1rem system-ui}
 main{position:fixed;inset:0;overflow:hidden;display:grid;place-items:center}
 main::before{content:"";position:absolute;inset:-30px;background:center/cover url(calendar.svg);filter:blur(24px) brightness(.45)}
-#scene{position:relative;width:min(100vw,46.15dvh);aspect-ratio:852/1846;background:center/100% 100% url(calendar.svg);transition:transform .75s cubic-bezier(.6,0,.28,1)}
+#scene{position:relative;width:min(100vw,46.15dvh);aspect-ratio:852/1846;background:center/100% 100% url(calendar.svg);transition:transform 1.7s cubic-bezier(.6,0,.28,1)}
 .door{position:absolute;transform:translate(-50%,-50%);border:0;border-radius:50%;background:none;padding:0;cursor:pointer;perspective:150px}
 .door:focus-visible,.door[data-opened]{outline:2px solid #ffe0a3;outline-offset:2px}
 .door.opening{background:radial-gradient(circle,#fffbe0 5%,#ffca61 34%,#a143c5 65%,#120b40 90%);box-shadow:0 0 20px #ffe482;z-index:1}
@@ -111,7 +111,7 @@ positions.forEach(([x,y,size], index) => {
     scene.style.transformOrigin = `${x/852*100}% ${y/1846*100}%`;
     const scale = 22;
     scene.style.transform = `translate(${(0.5-x/852)*scene.clientWidth}px,${(0.5-y/1846)*scene.clientHeight}px) scale(${scale})`;
-    await pause(760);
+    await pause(1710);
     if (!testing) {
       opened[number] = true;
       button.dataset.opened = '';
