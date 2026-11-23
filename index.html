@@ -22,8 +22,8 @@ dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;backgr
 @keyframes aurora-drift{from{opacity:.25;transform:translate(-5%,2%) rotate(-31deg)}to{opacity:.75;transform:translate(6%,-5%) rotate(-24deg)}}
 .flake{position:absolute;top:-8px;width:var(--diameter);height:var(--diameter);border-radius:50%;background:#edf8ff;opacity:var(--alpha);animation:snowfall var(--duration) var(--delay) linear infinite}
 @keyframes snowfall{to{transform:translate(var(--drift),calc(100dvh + 16px))}}
-.meteor{position:absolute;top:5%;left:83%;width:clamp(36px,12%,90px);height:2px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 21s linear infinite}
-@keyframes shoot{0%,30%{opacity:0;transform:translate(0,0) rotate(-26deg)}31%{opacity:.95}36%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
+.meteor{position:absolute;top:5%;left:83%;width:clamp(36px,12%,90px);height:2px;border-radius:50%;background:linear-gradient(90deg,#fff,transparent);filter:drop-shadow(0 0 4px #9ceaff);opacity:0;animation:shoot 7s linear infinite}
+@keyframes shoot{0%,10%{opacity:0;transform:translate(0,0) rotate(-26deg)}13%{opacity:.95}28%,100%{opacity:0;transform:translate(-56vw,27vw) rotate(-26deg)}}
 #scene:has(.opening) .weather{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.weather{display:none}}
 </style>
