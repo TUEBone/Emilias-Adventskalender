@@ -2,14 +2,16 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
   root.classList.add('paint-studio');
   root.innerHTML = `<div class="toolbar">
 <div class="tools" role="group" aria-label="Werkzeuge">
-<button data-mode="fill" aria-pressed="true">Füllen</button><button data-mode="brush" aria-pressed="false">Pinsel</button><button data-mode="pan" aria-pressed="false">Schieben</button>
+<button data-mode="fill" aria-pressed="true">Füllen</button><button data-mode="brush" aria-pressed="false">Pinsel</button><button data-mode="pan" aria-pressed="false">Bild verschieben</button>
 </div>
 <div class="tools" role="group" aria-label="Ansicht und Rückgängig">
 <button id="minus" type="button" aria-label="Verkleinern">−</button><span class="zoom" id="zoomText">100 %</span><button id="plus" type="button" aria-label="Vergrößern">+</button><button id="undo" type="button">Rückgängig</button>
 </div></div>
 <div class="viewport" id="viewport"><canvas id="picture" aria-label="Ausmalbild. Mit dem Finger oder der Maus eine Fläche antippen oder ausmalen."></canvas></div>
-<div class="palette-title"><span>60 Farben</span><span id="colorLabel"></span></div>
-<div class="palette" id="palette" role="group" aria-label="Farben"></div>
+<details class="color-picker">
+  <summary><span>Farbpalette öffnen</span><span id="colorLabel"></span></summary>
+  <div class="palette" id="palette" role="group" aria-label="60 Farben"></div>
+</details>
 <p class="status" id="status" aria-live="polite">Bild wird geladen.</p>
 <button id="finish" type="button">Bild fertig</button>
 `;
@@ -17,6 +19,12 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
   const ctx = canvas.getContext('2d', {willReadFrequently: true});
   const viewport = root.querySelector('#viewport');
   const palette = root.querySelector('#palette');
+  const picker = root.querySelector('.color-picker');
+  const summary = picker.querySelector('summary');
+  picker.addEventListener('toggle', () => {
+    summary.firstElementChild.textContent = picker.open ? 'Farbpalette schließen' : 'Farbpalette öffnen';
+    if (picker.open) picker.scrollIntoView({block:'nearest'});
+  });
   const status = root.querySelector('#status');
   const undoButton = root.querySelector('#undo');
   const zoomLevels = [1, 1.35, 1.8, 2.5, 3.5, 5];
@@ -24,21 +32,44 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
   let current, regions, componentPixels;
   let zoomIndex = 0, mode = 'fill', stroke = null;
   let color = null;
-  const help = {
-    fill: 'Tippe auf eine Fläche, um sie zu füllen.',
-    brush: 'Wische zum Malen. Der Pinsel bleibt in der Fläche, in der du angefangen hast.',
-    pan: 'Verschiebe das gezoomte Motiv mit dem Finger oder der Maus.'
-  };
+  function showHelp() {
+    if (!current) return;
+    const help = {
+      fill: zoomIndex ? 'Tippe zum Füllen. Wische, um das Bild zu verschieben.' : 'Tippe auf eine Fläche, um sie zu füllen.',
+      brush: 'Wische zum Malen. Zum Bewegen des Bildes wähle „Bild verschieben“.',
+      pan: 'Ziehe das Bild mit dem Finger oder der Maus in die gewünschte Richtung.'
+    };
+    status.textContent = help[mode];
+  }
 
-  const colorNames = ['Rot','Orange','Gold','Gelbgrün','Grün','Mint','Türkis','Himmelblau','Blau','Violett','Pink'];
+  const colorNames = ['Rot','Orange','Gelb','Gelbgrün','Grün','Mint','Türkis','Himmelblau','Blau','Violett','Pink','Grautöne'];
   const colorHues = [1,27,47,73,125,158,184,201,231,266,324];
   const shades = ['sehr hell','hell','kräftig','dunkel','sehr dunkel'];
   const neutrals = ['Weiß','Hellgrau','Grau','Dunkelgrau','Schwarz'];
-  for (let row = 0; row < 5; row++) {
-    for (let col = 0; col < 12; col++) {
-      const light = [87,72,52,37,22][row];
-      const css = col === 11 ? `hsl(0, 0%, ${[100,80,55,28,0][row]}%)` : `hsl(${colorHues[col]}, 82%, ${light}%)`;
-      const name = col === 11 ? neutrals[row] : `${colorNames[col]}, ${shades[row]}`;
+  const sample = document.createElement('canvas');
+  const sampleCtx = sample.getContext('2d');
+  sample.width = sample.height = 1;
+  function selectColor(swatch) {
+    palette.querySelector('[aria-pressed=true]')?.setAttribute('aria-pressed', 'false');
+    swatch.setAttribute('aria-pressed', 'true');
+    const css = swatch.style.getPropertyValue('--swatch');
+    root.querySelector('#colorLabel').textContent = swatch.title;
+    summary.style.setProperty('--selected-color', css);
+    sampleCtx.fillStyle = css;
+    sampleCtx.fillRect(0,0,1,1);
+    color = sampleCtx.getImageData(0,0,1,1).data;
+  }
+  colorNames.forEach((family, hue) => {
+    const row = document.createElement('div');
+    row.className = 'color-family';
+    const label = document.createElement('span');
+    label.textContent = family;
+    row.append(label);
+    shades.forEach((shade, index) => {
+      const neutral = hue === colorHues.length;
+      const light = (neutral ? [100,80,55,28,0] : [87,72,52,37,22])[index];
+      const css = neutral ? `hsl(0, 0%, ${light}%)` : `hsl(${colorHues[hue]}, 82%, ${light}%)`;
+      const name = neutral ? neutrals[index] : `${family}, ${shade}`;
       const swatch = document.createElement('button');
       swatch.className = 'swatch';
       swatch.type = 'button';
@@ -47,26 +78,21 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
       swatch.setAttribute('aria-pressed', 'false');
       swatch.title = name;
       swatch.addEventListener('click', () => {
-        const old = palette.querySelector('[aria-pressed=true]');
-        old?.setAttribute('aria-pressed', 'false');
-        swatch.setAttribute('aria-pressed', 'true');
-        root.querySelector('#colorLabel').textContent = name;
-        const sample = document.createElement('canvas');
-        const sampleCtx = sample.getContext('2d');
-        sampleCtx.fillStyle = css;
-        sampleCtx.fillRect(0,0,1,1);
-        color = sampleCtx.getImageData(0,0,1,1).data;
+        selectColor(swatch);
+        picker.open = false;
+        summary.focus({preventScroll:true});
       });
-      palette.append(swatch);
-    }
-  }
-  palette.children[26].click();
+      row.append(swatch);
+    });
+    palette.append(row);
+  });
+  selectColor(palette.querySelector('[aria-label="Gelb, kräftig"]'));
 
   function applyZoom() {
     const ratio = zoomLevels[zoomIndex];
     const left = (viewport.scrollLeft + viewport.clientWidth/2) / Math.max(canvas.clientWidth,1);
     const top = (viewport.scrollTop + viewport.clientHeight/2) / Math.max(canvas.clientHeight,1);
-    canvas.style.width = `${viewport.clientWidth * ratio}px`;
+    canvas.style.width = `${viewport.offsetWidth * ratio}px`;
     canvas.style.height = 'auto';
     if (zoomIndex === 0) {
       viewport.scrollTo(0,0);
@@ -76,6 +102,7 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
     root.querySelector('#zoomText').textContent = `${Math.round(ratio*100)} %`;
     root.querySelector('#minus').disabled = zoomIndex === 0;
     root.querySelector('#plus').disabled = zoomIndex === zoomLevels.length-1;
+    showHelp();
   }
   root.querySelector('#minus').onclick = () => { if (zoomIndex > 0) { zoomIndex--; applyZoom(); } };
   root.querySelector('#plus').onclick = () => { if (zoomIndex < zoomLevels.length-1) { zoomIndex++; applyZoom(); } };
@@ -158,7 +185,6 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
     if (signal.aborted) return;
     current = restored;
     applyZoom();
-    status.textContent = help[mode];
   }
   loadArt();
 
@@ -179,7 +205,7 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
         item.setAttribute('aria-pressed',String(item === button));
       });
       viewport.classList.toggle('pan',mode === 'pan');
-      if (current) status.textContent = help[mode];
+      showHelp();
     };
   });
 
@@ -217,30 +243,44 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
       }
     }
   }
+  function fillAt(event) {
+    const {id} = pixelPosition(event);
+    if (id <= 0) return;
+    remember();
+    for (const pixel of componentPixels[id]) setColor(pixel,color);
+    ctx.putImageData(current,0,0);
+    savePainting();
+  }
+
   canvas.addEventListener('pointerdown',event => {
     if (!current || stroke || event.button !== 0) return;
-    if (mode === 'pan') {
-      if (event.pointerType !== 'mouse') return;
-      stroke = {pan:true,pointer:event.pointerId,x:event.clientX,y:event.clientY};
+    if (mode === 'pan' || (mode === 'fill' && zoomIndex > 0)) {
+      stroke = {
+        type: mode === 'pan' ? 'pan' : 'tap',
+        pointer:event.pointerId, x:event.clientX, y:event.clientY
+      };
       canvas.setPointerCapture(event.pointerId);
+      return;
+    }
+    if (mode === 'fill') {
+      fillAt(event);
       return;
     }
     const pos = pixelPosition(event);
     if (pos.id <= 0) return;
     remember();
-    if (mode === 'fill') {
-      for (const pixel of componentPixels[pos.id]) setColor(pixel,color);
-    } else {
-      stroke = {...pos,pointer:event.pointerId,color,radius:Math.max(2,Math.round(9*canvas.width/canvas.clientWidth))};
-      canvas.setPointerCapture(event.pointerId);
-      dab(stroke.x,stroke.y);
-    }
+    stroke = {type:'brush',...pos,pointer:event.pointerId,color,radius:Math.max(2,Math.round(9*canvas.width/canvas.clientWidth))};
+    canvas.setPointerCapture(event.pointerId);
+    dab(stroke.x,stroke.y);
     ctx.putImageData(current,0,0);
-    if (mode === 'fill') savePainting();
   });
   canvas.addEventListener('pointermove',event => {
     if (!stroke || stroke.pointer !== event.pointerId) return;
-    if (stroke.pan) {
+    if (stroke.type === 'tap' && Math.hypot(stroke.x-event.clientX,stroke.y-event.clientY) >= 7) {
+      stroke.type = 'pan';
+    }
+    if (stroke.type === 'tap') return;
+    if (stroke.type === 'pan') {
       viewport.scrollLeft += stroke.x-event.clientX;
       viewport.scrollTop += stroke.y-event.clientY;
       stroke.x = event.clientX;
@@ -260,8 +300,10 @@ export function mountPaint(root, src, {state, save, complete}, signal) {
   for (const type of ['pointerup','pointercancel','lostpointercapture']) {
     canvas.addEventListener(type,event => {
       if (stroke?.pointer !== event.pointerId) return;
-      if (!stroke.pan) savePainting();
+      const type = stroke.type;
       stroke = null;
+      if (type === 'tap' && event.type === 'pointerup') fillAt(event);
+      if (type === 'brush') savePainting();
     });
   }
 }

@@ -87,11 +87,17 @@
 .paint-studio .zoom{min-width:5ch;text-align:center}
 .paint-studio .viewport{width:100%;overflow:auto;background:#fff;border-radius:8px;max-height:min(54dvh,550px);min-height:120px;overscroll-behavior:contain}
 .paint-studio canvas{display:block;max-width:none;touch-action:none;cursor:crosshair}
-.paint-studio .viewport.pan canvas{touch-action:pan-x pan-y;cursor:grab}
-.paint-studio .palette-title{display:flex;justify-content:space-between;gap:10px;margin:12px 0 7px}
+.paint-studio .viewport.pan canvas{cursor:grab}
+.paint-studio .viewport.pan canvas:active{cursor:grabbing}
+.paint-studio .color-picker{width:min(100%,520px);margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#251d49}
+.paint-studio .color-picker summary{padding:10px;cursor:pointer;min-height:44px}
 .paint-studio #colorLabel,.paint-studio .status{color:var(--soft);font-size:.88rem}
-.paint-studio .palette{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;width:min(100%,520px)}
-#chapter .paint-studio .swatch{min-height:25px;aspect-ratio:1;padding:0;border-radius:5px;background:var(--swatch)}
+.paint-studio #colorLabel{margin-inline-start:8px;white-space:nowrap}
+.paint-studio #colorLabel::before{content:'';display:inline-block;width:.85em;height:.85em;margin-inline-end:4px;border:1px solid #ffffff80;border-radius:50%;background:var(--selected-color);vertical-align:-.06em}
+.paint-studio .palette{max-height:min(38dvh,320px);overflow:auto;padding:6px 10px 10px;overscroll-behavior:contain}
+.paint-studio .color-family{display:grid;grid-template-columns:minmax(6ch,1fr) repeat(5,minmax(0,1fr));align-items:center;gap:4px;margin-top:5px}
+.paint-studio .color-family>span{font-size:.74rem;color:var(--soft)}
+#chapter .paint-studio .swatch{min-height:40px;padding:0;border-radius:5px;background:var(--swatch)}
 #chapter .paint-studio .swatch[aria-pressed=true]{outline:2px solid #fff;outline-offset:0}
 #chapter .paint-studio .swatch[aria-pressed=true]::after{content:'✓';color:white;text-shadow:#111 0 0 4px,#111 0 0 4px}
 #chapter .paint-studio button:disabled{opacity:.55}
