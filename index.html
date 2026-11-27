@@ -3,6 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Emilias Adventskalender</title>
+<link rel="stylesheet" href="puzzles/puzzles.css">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080f33;color:#fff9e9;font:1rem system-ui}
 main{position:fixed;inset:0;overflow:hidden;display:grid;place-items:center}
@@ -14,7 +15,6 @@ main::before{content:"";position:absolute;inset:-30px;background:center/cover ur
 .door.opening::after{content:"";position:absolute;inset:0;border-radius:50%;background-image:url(calendar.svg);background-size:var(--size);background-position:var(--position);transform-origin:left center;animation:open 1s ease-in-out forwards}
 @keyframes open{to{transform:rotateY(-110deg);opacity:.55}}
 .test{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;background:#091236dc;border:1px solid #ffffff55;border-radius:100px;padding:8px 12px;font-size:.83rem}
-dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;background:linear-gradient(155deg,#282055,#10183d);border:1px solid #ac8fcc;border-radius:22px;padding:24px;box-shadow:0 16px 70px #040617}dialog::backdrop{background:#0a0b2bcc}h1{font:700 2rem Georgia;margin:.5em 0}p{line-height:1.55}button{font:inherit}dialog button{color:inherit;background:#46346d;border:1px solid #b8a4d480;border-radius:12px;padding:10px 14px;cursor:pointer}#choices{display:flex;flex-wrap:wrap;gap:8px}#feedback{min-height:1.5em;color:#ffe0a3}
 @media(prefers-reduced-motion:reduce){*,*::after{animation-duration:0s!important;transition-duration:0s!important}}
 
 .weather{position:absolute;inset:0;overflow:hidden;pointer-events:none}
@@ -32,64 +32,105 @@ dialog{width:min(94vw,480px);max-height:90dvh;overflow:auto;color:inherit;backgr
 <main aria-label="Emilias Adventskalender"><div id="scene"><div class="weather" aria-hidden="true"><div class="aurora"></div><div class="meteor"></div></div></div></main>
 <label class="test"><input type="checkbox" id="test"> Testmodus</label>
 <dialog id="chapter" aria-labelledby="heading">
-<small id="day"></small><h1 id="heading"></h1><p id="story"></p><p id="riddle"></p>
-<div id="choices"></div><p id="feedback" role="status"></p>
-<form method="dialog"><button>Zurück zum Baum</button></form>
+  <div class="chapter-inner">
+    <header class="chapter-header">
+      <button id="back" type="button">← Zum Kalender</button>
+      <span id="day"></span>
+    </header>
+    <h1 id="heading"></h1>
+    <section id="day-content">
+      <button id="open-puzzle" type="button" class="puzzle-card" hidden>
+        <span>
+          <span id="puzzle-kind"></span>
+          <strong id="puzzle-name"></strong>
+          <span class="puzzle-action">Rätsel öffnen</span>
+        </span>
+        <span class="puzzle-arrow" aria-hidden="true">→</span>
+      </button>
+      <p id="story" hidden></p>
+      <p id="calendar-message" role="status" hidden></p>
+    </section>
+    <section id="puzzle-content" hidden></section>
+  </div>
 </dialog>
-<script>
-const gifts=[["🎄","Dein Weihnachtsabenteuer beginnt! Heute gehört dir ein extra großes Lächeln."],["⭐","Wunschstern: Denk dir einen geheimen Wunsch aus."],["☕","Zeit für eine gemütliche Tasse Kakao."],["🎶","Heute ist dein Tag für ein Lieblingslied und eine kleine Tanzparty."],["🦌","Ein Rentier hat eine Nachricht: Du bist wunderbar!"],["🎅","Nikolauszauber! Halte heute nach einer kleinen Überraschung Ausschau."],["🍪","Backidee: Verziere einen Keks so verrückt wie möglich."],["❄️","Mini-Mission: Entdecke draußen drei schöne Winterdinge."],["💌","Schreibe jemandem eine liebe Nachricht."],["🎬","Heute wäre ein perfekter Abend für einen Weihnachtsfilm."],["🌟","Deine Superkraft heute: Bring jemanden zum Lachen."],["🧣","Mach es dir richtig gemütlich – mit Decke und Lieblingsmusik."],["🎨","Male einen Weihnachtsbaum, den es noch nie gab."],["🧩","Rätsel: Was fällt im Winter, tut aber nicht weh? Schnee!"],["💃","Eine Minute verrückt tanzen – Herausforderung angenommen?"],["🕯️","Wünsch dir einen besonders schönen Moment für diese Woche."],["🎁","Überraschungsmission: Mach jemandem ein kleines Kompliment."],["⛄","Erfinde einen lustigen Namen für einen Schneemann."],["🦄","Stell dir vor, ein magisches Einhorn bringt dich zum Nordpol!"],["⚽","Weihnachts-Challenge: Erfinde einen neuen Fußball-Jubel."],["🍫","Heute darfst du dir eine kleine süße Pause gönnen."],["🎵","Sing den Refrain deines Lieblingssongs."],["💖","Denk an drei Dinge, auf die du dich freust."],["🎉","Frohe Weihnachten, Emilia! Du bist das größte Geschenk. ❤️"]];
+<script type="module">
+import { mountPuzzle, puzzleKinds, puzzles } from './puzzles/puzzles.js';
+
 const positions = [[644,373,52],[536,488,58],[702,478,52],[634,530,40],[453,573,49],[576,612,52],[751,585,64],[419,685,49],[537,673,37],[690,685,58],[803,719,43],[452,765,70],[582,739,54],[652,775,35],[373,847,50],[545,842,52],[729,831,80],[825,853,45],[420,923,51],[608,914,36],[344,984,50],[504,982,59],[693,963,67],[433,1056,61]];
 const scene = document.querySelector('#scene');
 const test = document.querySelector('#test');
 const chapter = document.querySelector('#chapter');
-const choices = document.querySelector('#choices');
+const heading = document.querySelector('#heading');
+const back = document.querySelector('#back');
+const dayContent = document.querySelector('#day-content');
+const puzzleContent = document.querySelector('#puzzle-content');
+const openPuzzle = document.querySelector('#open-puzzle');
+const story = document.querySelector('#story');
+const message = document.querySelector('#calendar-message');
 let opened = {};
 let activeDoor;
-let solved = false;
-try {
-  opened = JSON.parse(localStorage.getItem('emilia-opened')) || {};
-  solved = localStorage.getItem('emilia-riddle-1') === 'true';
-} catch {}
-function write(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-}
+let activePuzzle;
+let puzzleRequest;
+let testing = false;
+
+try { opened = JSON.parse(localStorage.getItem('emilia-opened')) || {}; } catch {}
+
 function show(number, unlocked) {
+  activePuzzle = unlocked ? puzzles[number - 1] : null;
   document.querySelector('#day').textContent = number + '. Dezember';
-  document.querySelector('#heading').textContent = !unlocked ? 'Die Kugel schläft noch' : number === 1 ? 'Der Ball im Nordlicht' : 'Türchen ' + number;
-  document.querySelector('#story').textContent = !unlocked
-    ? 'Diese Kugel öffnet sich am ' + number + '. Dezember 2026.'
-    : number === 1
-      ? 'Emilia hört einen dumpfen Schuss. Zwischen den verschneiten Tannen rollt ein goldener Ball vor ihre Füße. „Gut abgefangen“, sagt Ronaldo und stapft hinterher. Im Schnee leuchten drei Zahlen auf. „Eine davon öffnet das Tor zum Winterstadion. Probierst du es?“'
-      : gifts[number - 1][1];
-  document.querySelector('#riddle').textContent = unlocked && number === 1
-    ? 'Auf dem ersten Trikot steht 7, auf dem zweiten 10. Welche Zahl trägt das dritte Trikot, wenn die Zahlen immer um gleich viel steigen?'
-    : '';
-  choices.replaceChildren();
-  const feedback = document.querySelector('#feedback');
-  const success = 'Richtig! Das Tor öffnet sich. Ronaldo legt dir den goldenen Ball vor die Füße. „Der erste Pass gehört dir.“';
-  feedback.textContent = '';
-  if (unlocked && number === 1) {
-    feedback.textContent = solved ? success : '';
-    for (const answer of [11, 13, 17]) {
-      const button = document.createElement('button');
-      button.textContent = answer;
-      button.type = 'button';
-      button.onclick = () => {
-        if (answer !== 13) {
-          feedback.textContent = 'Schau, um wie viel die Zahl von 7 auf 10 steigt.';
-          return;
-        }
-        feedback.textContent = success;
-        if (!test.checked) {
-          solved = true;
-          write('emilia-riddle-1', true);
-        }
-      };
-      choices.append(button);
-    }
-  }
+  showDay();
   chapter.showModal();
+  chapter.scrollTop = 0;
 }
+
+function showDay() {
+  puzzleRequest?.abort();
+  puzzleContent.replaceChildren();
+  puzzleContent.hidden = true;
+  dayContent.hidden = false;
+  back.textContent = '← Zum Kalender';
+  heading.textContent = activePuzzle ? 'Türchen ' + activePuzzle.day : 'Die Kugel schläft noch';
+  message.hidden = Boolean(activePuzzle);
+  message.textContent = activePuzzle ? '' : 'Diese Kugel öffnet sich am ' + document.querySelector('#day').textContent + ' 2026.';
+  openPuzzle.hidden = !activePuzzle;
+  story.textContent = activePuzzle?.story ?? '';
+  story.hidden = !story.textContent;
+  if (activePuzzle) {
+    document.querySelector('#puzzle-kind').textContent = puzzleKinds[activePuzzle.kind];
+    document.querySelector('#puzzle-name').textContent = activePuzzle.title;
+  }
+}
+
+openPuzzle.addEventListener('click', async () => {
+  const request = new AbortController();
+  puzzleRequest = request;
+  dayContent.hidden = true;
+  puzzleContent.hidden = false;
+  back.textContent = '← Zum Türchen';
+  heading.textContent = activePuzzle.title;
+  chapter.scrollTop = 0;
+  back.focus({preventScroll:true});
+  try {
+    await mountPuzzle(puzzleContent,activePuzzle,testing,request.signal);
+  } catch {
+    if (!request.signal.aborted) puzzleContent.textContent = 'Das Rätsel konnte nicht geladen werden. Öffne es noch einmal.';
+  }
+});
+function goBack() {
+  if (!puzzleContent.hidden) {
+    showDay();
+    chapter.scrollTop = 0;
+    openPuzzle.focus({preventScroll:true});
+  } else {
+    chapter.close();
+  }
+}
+back.addEventListener('click',goBack);
+chapter.addEventListener('cancel',event=>{
+  event.preventDefault();
+  goBack();
+});
+
 const pause = ms => new Promise(resolve => setTimeout(resolve, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms));
 positions.forEach(([x,y,size], index) => {
   const number = index + 1;
@@ -101,7 +142,7 @@ positions.forEach(([x,y,size], index) => {
   button.onclick = async () => {
     if (activeDoor || chapter.open) return;
     const today = new Date();
-    const testing = test.checked;
+    testing = test.checked;
     if (!testing && today < new Date(2026,11,number)) {
       show(number, false);
       return;
@@ -117,16 +158,20 @@ positions.forEach(([x,y,size], index) => {
     if (!testing) {
       opened[number] = true;
       button.dataset.opened = '';
-      write('emilia-opened', opened);
+      try { localStorage.setItem('emilia-opened', JSON.stringify(opened)); } catch {}
     }
     show(number, true);
   };
   scene.append(button);
 });
-chapter.addEventListener('close', () => {
+chapter.addEventListener('close', async () => {
+  puzzleRequest?.abort();
+  puzzleContent.replaceChildren();
   scene.style.transform = '';
-  activeDoor?.classList.remove('opening');
-  activeDoor?.focus({preventScroll:true});
+  if (!activeDoor) return;
+  await pause(2000);
+  activeDoor.classList.remove('opening');
+  activeDoor.focus({preventScroll:true});
   activeDoor = null;
   test.disabled = false;
 });
