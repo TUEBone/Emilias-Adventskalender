@@ -59,6 +59,7 @@ import { mountPuzzle, puzzleKinds, puzzles } from './puzzles/puzzles.js';
 const positions = [[644,373,52],[536,488,58],[702,478,52],[634,530,40],[453,573,49],[576,612,52],[751,585,64],[419,685,49],[537,673,37],[690,685,58],[803,719,43],[452,765,70],[582,739,54],[652,775,35],[373,847,50],[545,842,52],[729,831,80],[825,853,45],[420,923,51],[608,914,36],[344,984,50],[504,982,59],[693,963,67],[433,1056,61]];
 const scene = document.querySelector('#scene');
 const test = document.querySelector('#test');
+test.checked = new URLSearchParams(location.search).has('test');
 const chapter = document.querySelector('#chapter');
 const heading = document.querySelector('#heading');
 const back = document.querySelector('#back');
