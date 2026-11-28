@@ -41,20 +41,32 @@ main::before{content:"";position:absolute;inset:-30px;background:center/cover ur
     <section id="day-content">
       <button id="open-puzzle" type="button" class="puzzle-card" hidden>
         <span>
-          <span id="puzzle-kind"></span>
-          <strong id="puzzle-name"></strong>
-          <span class="puzzle-action">Rätsel öffnen</span>
+          <strong>Rätsel</strong>
+          <span class="door-detail" id="puzzle-name"></span>
         </span>
         <span class="puzzle-arrow" aria-hidden="true">→</span>
       </button>
-      <p id="story" hidden></p>
+      <button id="open-story" type="button" class="puzzle-card" hidden>
+        <span>
+          <strong>Weihnachtsgeschichte</strong>
+          <span class="door-detail" id="story-preview"></span>
+        </span>
+        <span class="puzzle-arrow" aria-hidden="true">→</span>
+      </button>
+      <aside class="daily-saying" id="daily-saying" aria-labelledby="daily-saying-title" hidden>
+        <h2 id="daily-saying-title">Tagesspruch</h2>
+        <p></p>
+        <cite hidden></cite>
+      </aside>
       <p id="calendar-message" role="status" hidden></p>
     </section>
     <section id="puzzle-content" hidden></section>
+    <article class="story-content" id="story-content" aria-labelledby="heading" hidden></article>
   </div>
 </dialog>
 <script type="module">
 import { mountPuzzle, puzzleKinds, puzzles } from './puzzles/puzzles.js';
+import { chapters, sayings } from './story-data.js';
 
 const positions = [[644,373,52],[536,488,58],[702,478,52],[634,530,40],[453,573,49],[576,612,52],[751,585,64],[419,685,49],[537,673,37],[690,685,58],[803,719,43],[452,765,70],[582,739,54],[652,775,35],[373,847,50],[545,842,52],[729,831,80],[825,853,45],[420,923,51],[608,914,36],[344,984,50],[504,982,59],[693,963,67],[433,1056,61]];
 const scene = document.querySelector('#scene');
@@ -66,18 +78,36 @@ const back = document.querySelector('#back');
 const dayContent = document.querySelector('#day-content');
 const puzzleContent = document.querySelector('#puzzle-content');
 const openPuzzle = document.querySelector('#open-puzzle');
-const story = document.querySelector('#story');
+const puzzleName = document.querySelector('#puzzle-name');
+const openStory = document.querySelector('#open-story');
+const storyPreview = document.querySelector('#story-preview');
+const storyContent = document.querySelector('#story-content');
+const dailySaying = document.querySelector('#daily-saying');
+const sayingText = dailySaying.querySelector('p');
+const sayingCredit = dailySaying.querySelector('cite');
 const message = document.querySelector('#calendar-message');
 let opened = {};
 let activeDoor;
 let activePuzzle;
+let activeStory;
+let activeSaying;
 let puzzleRequest;
 let testing = false;
+
+const storyChoiceKey = 'emilia-story-choices-v1';
+const trialChoices = {};
+let storyChoices = {};
+try {
+  const savedChoices = JSON.parse(localStorage.getItem(storyChoiceKey));
+  if (savedChoices && typeof savedChoices === 'object') storyChoices = savedChoices;
+} catch {}
 
 try { opened = JSON.parse(localStorage.getItem('emilia-opened')) || {}; } catch {}
 
 function show(number, unlocked) {
   activePuzzle = unlocked ? puzzles[number - 1] : null;
+  activeStory = unlocked ? chapters[number - 1] : null;
+  activeSaying = unlocked ? sayings[number - 1] : null;
   document.querySelector('#day').textContent = number + '. Dezember';
   showDay();
   chapter.showModal();
@@ -88,19 +118,68 @@ function showDay() {
   puzzleRequest?.abort();
   puzzleContent.replaceChildren();
   puzzleContent.hidden = true;
+  storyContent.replaceChildren();
+  storyContent.hidden = true;
   dayContent.hidden = false;
   back.textContent = '← Zum Kalender';
   heading.textContent = activePuzzle ? 'Türchen ' + activePuzzle.day : 'Die Kugel schläft noch';
   message.hidden = Boolean(activePuzzle);
   message.textContent = activePuzzle ? '' : 'Diese Kugel öffnet sich am ' + document.querySelector('#day').textContent + ' 2026.';
   openPuzzle.hidden = !activePuzzle;
-  story.textContent = activePuzzle?.story ?? '';
-  story.hidden = !story.textContent;
-  if (activePuzzle) {
-    document.querySelector('#puzzle-kind').textContent = puzzleKinds[activePuzzle.kind];
-    document.querySelector('#puzzle-name').textContent = activePuzzle.title;
-  }
+  openStory.hidden = !activeStory;
+  dailySaying.hidden = !activeSaying;
+  if (activePuzzle) puzzleName.textContent = puzzleKinds[activePuzzle.kind] + ' · ' + activePuzzle.title;
+  if (activeStory) storyPreview.textContent = activeStory.title;
+  sayingText.textContent = activeSaying?.text ?? '';
+  sayingCredit.textContent = activeSaying?.credit ?? '';
+  sayingCredit.hidden = !activeSaying?.credit;
 }
+
+openStory.addEventListener('click', () => {
+  const { title, paragraphs, choice, recall } = activeStory;
+  const choices = testing ? trialChoices : storyChoices;
+  for (const text of paragraphs) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = text;
+    storyContent.append(paragraph);
+  }
+  if (recall && Object.hasOwn(recall.responses, choices[recall.day])) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = recall.responses[choices[recall.day]];
+    storyContent.append(paragraph);
+  }
+  if (choice) {
+    const number = activePuzzle.day;
+    const group = document.createElement('fieldset');
+    const legend = document.createElement('legend');
+    legend.textContent = choice.prompt;
+    group.append(legend);
+    const options = [...choice.options, ''];
+    const buttons = options.map(option => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = option || 'Ohne Auswahl';
+      button.setAttribute('aria-pressed', String(option === (choices[number] ?? '')));
+      button.addEventListener('click', () => {
+        if (option) choices[number] = option;
+        else delete choices[number];
+        buttons.forEach((peer, index) => peer.setAttribute('aria-pressed', String(options[index] === option)));
+        if (!testing) {
+          try { localStorage.setItem(storyChoiceKey, JSON.stringify(storyChoices)); } catch {}
+        }
+      });
+      return button;
+    });
+    group.append(...buttons);
+    storyContent.append(group);
+  }
+  dayContent.hidden = true;
+  storyContent.hidden = false;
+  back.textContent = '← Zum Türchen';
+  heading.textContent = title;
+  chapter.scrollTop = 0;
+  back.focus({preventScroll:true});
+});
 
 openPuzzle.addEventListener('click', async () => {
   const request = new AbortController();
@@ -118,10 +197,11 @@ openPuzzle.addEventListener('click', async () => {
   }
 });
 function goBack() {
-  if (!puzzleContent.hidden) {
+  if (!puzzleContent.hidden || !storyContent.hidden) {
+    const returnButton = storyContent.hidden ? openPuzzle : openStory;
     showDay();
     chapter.scrollTop = 0;
-    openPuzzle.focus({preventScroll:true});
+    returnButton.focus({preventScroll:true});
   } else {
     chapter.close();
   }

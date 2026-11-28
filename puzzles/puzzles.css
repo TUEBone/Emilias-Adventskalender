@@ -37,11 +37,18 @@
 }
 #chapter [hidden]{display:none!important}
 .puzzle-card span span,.puzzle-card strong{display:block}
-#puzzle-kind{color:var(--gold);font-size:.84rem;margin-bottom:5px}
-#puzzle-name{font:700 clamp(1.3rem,4.8vw,1.9rem)/1.15 Georgia,serif}
-.puzzle-action{font-size:.85rem;color:var(--soft);margin-top:10px}
+.puzzle-card strong{font:700 clamp(1.25rem,5vw,1.9rem)/1.15 Georgia,serif}
+.door-detail{font-size:.9rem;color:var(--soft);margin-top:8px}
 .puzzle-arrow{font-size:1.5rem;color:var(--gold)}
-#story{white-space:pre-line;margin:22px 0;max-width:60ch}
+#day-content .puzzle-card + .puzzle-card{margin-top:10px}
+.daily-saying{margin-top:22px;width:min(100%,480px);padding:17px 19px;border:1px solid var(--line);border-radius:12px;background:#211940}
+.daily-saying h2{font-size:.95rem;margin:0;color:var(--gold)}
+.daily-saying p{white-space:pre-line;margin:8px 0 0}
+.daily-saying cite{display:block;margin-top:8px;color:var(--soft);font-size:.85rem}
+.story-content{max-width:62ch}
+#chapter .story-content p{font:clamp(1.1rem,3vw,1.22rem)/1.65 Georgia,serif;margin:0 0 .95em}
+.story-content fieldset{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:12px;border:1px solid var(--line);border-radius:12px}
+.story-content legend{color:var(--gold);padding:0 5px}
 .puzzle-work>p:first-child{margin:0 0 16px;color:var(--soft);max-width:63ch}
 .puzzle-feedback,.puzzle-count{font-weight:600;color:var(--gold)}
 .puzzle-feedback{position:sticky;bottom:-2px;margin:10px 0 0;padding:8px 12px;border-radius:8px;background:#21183c;z-index:2}
